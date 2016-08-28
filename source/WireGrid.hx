@@ -295,9 +295,8 @@ class WireGrid extends FlxSpriteGroup
 								if (nt.elementType == 0 && isValidWire(i, nt.connectionState)) {
 									toVisit.push([nr, nc]);
 								} else if (nt.elementType == 1) {
-									if (isValidWire(i, nt.connectionState)) toVisit.push([nr, nc]);
-								} else if (nt.elementType == 2) {
 									toVisit.push([nr, nc]);
+								} else if (nt.elementType == 2) {
 									if (nt.activationLevel <= 10) nt.activationLevel++;
 									if (nt.activationLevel > 10) nt.activate();
 								} else if (nt.elementType == 3) {

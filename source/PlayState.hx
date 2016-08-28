@@ -61,7 +61,7 @@ class PlayState extends FlxState
 	{
 		super.update(elapsed);
 		if (FlxG.keys.justPressed.RIGHT) {
-			changeLevel(Reg.level + 1);
+			//changeLevel(Reg.level + 1);
 		}
 	}
 	
