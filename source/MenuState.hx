@@ -6,6 +6,7 @@ import flixel.FlxState;
 import flixel.text.FlxText;
 import flixel.ui.FlxButton;
 import flixel.math.FlxMath;
+import flixel.util.FlxSave;
 
 /**
  * A FlxState which can be used for the game's menu.
@@ -18,7 +19,21 @@ class MenuState extends FlxState
 	override public function create():Void
 	{
 		super.create();
-		FlxG.switchState(new PlayState());
+		
+		if (FlxG.save.data.level != null) {
+			Reg.level = FlxG.save.data.level;
+			FlxG.switchState(new PlayState());
+		}
+		
+		FlxG.switchState(new SceneState([
+			"assets/images/slide0.png",
+			"assets/images/slide2.png",
+			"assets/images/slide3.png",
+			"assets/images/slide4.png"
+		], function ()
+		{
+			FlxG.switchState(new PlayState());
+		}));
 	}
 	
 	/**

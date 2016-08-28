@@ -41,6 +41,7 @@ class WireGrid extends FlxSpriteGroup
 	private var curTest:Array<Array<Int>>;
 	private var curOutput:Array<Int>;
 	private var curTestNo:Int = 0;
+	private var junctionPos:Array<Array<Array<Int>>>;
 	private var inputPos:Array<Array<Int>>;
 	private var outputPos:Array<Array<Int>>;
 	public var testsPassed:Bool = false;
@@ -54,11 +55,11 @@ class WireGrid extends FlxSpriteGroup
 		var grpWidth = gridWidth + padding * 2;
 		sprBackground.height = grpHeight;
 		sprBackground.width = grpWidth;
-		sprBackground.makeGraphic(grpWidth, grpHeight, 0xff292929);
-		var bgStroke = 3;
-		sprBackground.drawRect(padding - bgStroke, padding - bgStroke, gridWidth + bgStroke * 2, gridHeight + bgStroke * 2, 0xff222222);
+		sprBackground.makeGraphic(grpWidth, grpHeight, 0x00292929);
+		var bgStroke = 1;
+		sprBackground.drawRect(padding - bgStroke, padding - bgStroke, gridWidth + bgStroke * 2, gridHeight + bgStroke * 2, 0xff292929);
 		
-		//add(sprBackground);
+		add(sprBackground);
 		
 		sprGridOverlay = new FlxSprite();
 		sprGridOverlay.x = padding;
@@ -220,6 +221,15 @@ class WireGrid extends FlxSpriteGroup
 							gridEl.outputNum = (gridEl.outputNum - 1) % ps.curLevel.levelOutputs + 1;
 							gridEl.redraw();
 						}
+					} else if (ps.componentSelector.activeTool == 8) {
+						if (gridEl.elementType != 8) {
+							gridEl.junctionNum = 1;
+							gridEl.setType(8);
+						} else {
+							gridEl.junctionNum++;
+							gridEl.junctionNum = (gridEl.junctionNum - 1) % Reg.maxJunctions + 1;
+							gridEl.redraw();
+						}
 					}
 				}
 				
@@ -265,14 +275,13 @@ class WireGrid extends FlxSpriteGroup
 						var gridElType = gridEl.elementType;
 						var cs = gridEl.connectionState;
 						if (gridElType == 0) {
-							gridElements[cr][cc].activate();
-						}
-						if (gridElType == 2) {
-							if (gridEl.activationLevel <= 5) gridElements[cr][cc].activationLevel++;
-							if (gridElements[cr][cc].activationLevel > 5) gridElements[cr][cc].activate();
+							gridEl.activate();
 						}
 						if (gridElType == 7) {
 							if (gridEl.outputNum-1 < ps.curLevel.levelOutputs) curOutput[gridEl.outputNum-1] = 1;
+						}
+						if (gridElType == 8) {
+							gridEl.activate();
 						}
 						for (i in 0...4) {
 							var nr = cr + dirs[i][0];
@@ -286,24 +295,52 @@ class WireGrid extends FlxSpriteGroup
 								if (nt.elementType == 0 && isValidWire(i, nt.connectionState)) {
 									toVisit.push([nr, nc]);
 								} else if (nt.elementType == 1) {
+									if (isValidWire(i, nt.connectionState)) toVisit.push([nr, nc]);
 								} else if (nt.elementType == 2) {
 									toVisit.push([nr, nc]);
+									if (nt.activationLevel <= 10) nt.activationLevel++;
+									if (nt.activationLevel > 10) nt.activate();
 								} else if (nt.elementType == 3) {
 									toVisit.push([nr, nc]);
 								} else if (nt.elementType == 7) {
 									toVisit.push([nr, nc]);
+								} else if (nt.elementType == 8) {
+									toVisit.push([nr, nc]);
 								}
 							} else if (gridElType == 1) {
+								if (isValidWire(i, nt.connectionState)) toVisit.push([nr, nc]);
+								if (nt.elementType == 2 && nt.activated) {
+									toVisit.push([nr, nc]);
+									if (nt.elementType == 2) {
+										toVisit.push([nr, nc]);
+									}
+								}
+								if (nt.elementType == 1) {
+									toVisit.push([nr, nc]);
+								}
 							} else if (gridElType == 2) {
 								if (isValidWire(i, nt.connectionState)) toVisit.push([nr, nc]);
+								if (nt.elementType == 2 && nt.activated) {
+									toVisit.push([nr, nc]);
+								}
+								if (nt.elementType == 3) {
+									toVisit.push([nr, nc]);
+								}
 							} else if (gridElType == 3) {
 								if (isValidWire(i, nt.connectionState)) toVisit.push([nr, nc]);
+								
 							} else if (gridElType == 4) {
 								if (isValidWire(i, nt.connectionState)) toVisit.push([nr, nc]);
 							} else if (gridElType == 5) {
 								
 							} else if (gridElType == 6) {
 								if (isValidWire(i, nt.connectionState)) toVisit.push([nr, nc]);
+							} else if (gridElType == 8) {
+								if (isValidWire(i, nt.connectionState)) toVisit.push([nr, nc]);
+								for (junction in junctionPos[gridEl.junctionNum - 1]) {
+									if (junction[0] == cr && junction[1] == cc) continue;
+									toVisit.push(junction);
+								}
 							}
 						}	
 					}
@@ -324,6 +361,9 @@ class WireGrid extends FlxSpriteGroup
 						}
 						if (gridElType == 7) {
 							if (gridEl.outputNum-1 < ps.curLevel.levelOutputs) curOutput[gridEl.outputNum-1] = 0;
+						}
+						if (gridElType == 8) {
+							gridEl.deactivate();
 						}
 						for (i in 0...4) {
 							var nr = cr + dirs[i][0];
@@ -348,6 +388,7 @@ class WireGrid extends FlxSpriteGroup
 								}
 							} else if (gridElType == 1) {
 								if (nt.elementType == 2 && nt.activated) toVisit.push([nr, nc]);
+								if (nt.elementType == 3) toVisit.push([nr, nc]);
 								if (isValidWire(i, nt.connectionState)) toVisit.push([nr, nc]);
 							} else if (gridElType == 2) {
 								if (nt.elementType == 2 && nt.activated) {
@@ -364,6 +405,12 @@ class WireGrid extends FlxSpriteGroup
 								if (isValidWire(i, nt.connectionState)) toVisit.push([nr, nc]);
 							} else if (gridElType == 6) {
 								if (isValidWire(i, nt.connectionState)) toVisit.push([nr, nc]);
+							} else if (gridElType == 8) {
+								if (isValidWire(i, nt.connectionState)) toVisit.push([nr, nc]);
+								for (junction in junctionPos[gridEl.junctionNum - 1]) {
+									if (junction[0] == cr && junction[1] == cc) continue;
+									toVisit.push(junction);
+								}
 							}
 						}	
 					}
@@ -456,6 +503,19 @@ class WireGrid extends FlxSpriteGroup
 		return positions;
 	}
 	
+	private function getJunctions():Array<Array<Array<Int>>> {
+		var positions = [for (i in 0...Reg.maxJunctions) []];
+		for (i in 0...gridRows) {
+			for (j in 0...gridColumns) {
+				var gridEl = gridElements[i][j];
+				if (gridEl.elementType == 8) {
+					positions[gridEl.junctionNum - 1].push([i, j]);
+				}
+			}
+		}
+		return positions;
+	}
+	
 	public function runTests() {
 		inputPos = getInputs();
 		testsPassed = false;
@@ -471,6 +531,8 @@ class WireGrid extends FlxSpriteGroup
 			stopTests();
 			return;
 		}
+		
+		junctionPos = getJunctions();
 		
 		curTestNo = 0;
 		curTest = ps.curLevel.levelTests[0];

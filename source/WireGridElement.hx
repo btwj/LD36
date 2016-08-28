@@ -18,11 +18,12 @@ class WireGridElement extends FlxSpriteGroup
 	/* 0 = no connection, 1 = left to right, 2 = up to down, 3 = left right up & down */
 	public var elementType:Int = 0;
 	/* 0 = wire, 1 = cathode, 2 = screen, 3 = anode, 4 = voltage source, 5 = ground */
-	/* 6 = input, 7 = output */
+	/* 6 = input, 7 = output 8 = junction */
 	public var activated:Bool = false;
 	public var activationLevel:Int = 0;
 	public var inputNum:Int = 0;
 	public var outputNum:Int = 0;
+	public var junctionNum:Int = 0;
 	public var tileText:FlxText;
 	public var parity:Int = 0;
 
@@ -94,6 +95,14 @@ class WireGridElement extends FlxSpriteGroup
 			tileSprite.loadGraphic(AssetPaths.output__png, false, 16, 16, true);
 			tileText.setFormat(8, 0xffffffff, FlxTextAlign.CENTER);
 			if (outputNum != 0) tileText.text = Std.string(outputNum);
+			else tileText.text = "";
+		} else if (elementType == 8) {
+			if (activated) {
+				tileSprite.loadGraphic(AssetPaths.junction_activated__png);
+			} else {
+				tileSprite.loadGraphic(AssetPaths.junction__png);
+			}
+			if (junctionNum != 0) tileText.text = Std.string(junctionNum);
 			else tileText.text = "";
 		}
 	}

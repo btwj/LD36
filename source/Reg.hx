@@ -19,6 +19,8 @@ class Reg
 	 * Example usage: Storing the current level number.
 	 */
 	public static var level:Int = 0;
+	public static var scenePlayed:Bool = false;
+	public static var maxJunctions:Int = 20;
 	/**
 	 * Generic scores Array that can be used for cross-state stuff.
 	 * Example usage: Storing the scores for level.

@@ -32,9 +32,10 @@ class PlayState extends FlxState
 	{
 		super.create();
 		
-		var bg = new FlxSprite(-200, -200);
+		var bg = new FlxSprite(160, 120);
 		//bg.makeGraphic(640, 480, 0xffd6a249);
-		bg.loadGraphic(AssetPaths.paper2__jpg, false, 1923, 2510);
+		bg.loadGraphic(AssetPaths.bg__png, false);
+		bg.scale.set(2, 2);
 		add(bg);
 		
 		wireGrid = new WireGrid(this);
@@ -44,7 +45,8 @@ class PlayState extends FlxState
 		desk = new Desk(this, 0, gridHeight + padding * 2);
 		add(desk);
 		
-		changeLevel(0);
+		changeLevel(Reg.level);
+		Reg.scenePlayed = false;
 	}
 	
 	/**
@@ -58,15 +60,38 @@ class PlayState extends FlxState
 	override public function update(elapsed:Float):Void
 	{
 		super.update(elapsed);
+		if (FlxG.keys.justPressed.RIGHT) {
+			changeLevel(Reg.level + 1);
+		}
 	}
 	
 	public function changeLevel(_levelNo:Int):Void
 	{
-		levelNo = _levelNo;
-		curLevel = Levels.levels[_levelNo];
-		trace(curLevel.levelOutputs);
-		desk.levelTitle.text = Std.string(curLevel.levelNo) + ". " + curLevel.levelName;
-		desk.levelDescription.text = curLevel.levelDescription;
+		Reg.level = levelNo = _levelNo;
+		FlxG.save.data.level = Reg.level;
+		FlxG.save.flush();
+		if (!Reg.scenePlayed) {
+			if (levelNo == 3) {
+				FlxG.switchState(new SceneState(["assets/images/slide1.png", "assets/images/slide5.png", "assets/images/slide6.png"], function ()
+				{
+					FlxG.switchState(new PlayState());
+				}));
+			}
+			if (levelNo == 9) {
+				FlxG.switchState(new SceneState(["assets/images/slide7.png"], function ()
+				{
+					FlxG.switchState(new PlayState());
+				}));
+			}
+		}
+		if (levelNo == Levels.levels.length) {
+			FlxG.switchState(new GameOverState());
+		} else {
+			componentSelector.revealTools(levelNo);
+			curLevel = Levels.levels[_levelNo];
+			desk.levelTitle.text = Std.string(Reg.level + 1) + ". " + curLevel.levelName;
+			desk.levelDescription.text = curLevel.levelDescription;
+		}
 	}
 	
 	
